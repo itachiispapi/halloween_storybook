@@ -14,6 +14,7 @@ class BooApp extends StatelessWidget {
   }
 }
 
+/* --------- Page 1 ---------*/
 class PageEntrance extends StatefulWidget {
   const PageEntrance({super.key});
   @override
@@ -67,12 +68,12 @@ class _PageEntranceState extends State<PageEntrance> {
                   mainAxisSize: MainAxisSize.min,
                   children: const [
                     Text(
-                      "Boo enters",
+                      "Booboo enters",
                       style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w700),
                     ),
                     SizedBox(height: 8),
                     Text(
-                      "It’s Boo’s first Halloween… and this is a real haunted house.",
+                      "It’s Booboo’s first Halloween… and this is a real haunted house.",
                       style: TextStyle(color: Colors.white70, fontSize: 16),
                       textAlign: TextAlign.center,
                     ),
@@ -83,9 +84,24 @@ class _PageEntranceState extends State<PageEntrance> {
           ),
         ),
       ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: FilledButton.icon(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PageTwo()),
+              );
+            },
+            icon: const Icon(Icons.navigate_next),
+            label: const Text('Next'),
+          ),
+        ),
+      ),
     );
   }
 }
+
 
 class _GhostImage extends StatelessWidget {
   final double size;
