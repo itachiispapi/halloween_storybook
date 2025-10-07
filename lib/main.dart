@@ -525,7 +525,7 @@ class _Scene5PageState extends State<Scene5Page> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
-    final top = 350.0;
+    final top = 290.0;
     final startLeft = 40.0;
     final targetLeft = w * 0.62;
 
