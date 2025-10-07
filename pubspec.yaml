@@ -62,6 +62,10 @@ flutter:
     - assets/catmeow.mp3
     - assets/bgsc2.png
     - assets/kid.png
+    - assets/page1_bg.jpg
+    - assets/scary_scream.mp3
+    - assets/page2_bg.jpg
+    - assets/page4&5_bg.jpg
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
