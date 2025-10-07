@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 void main() => runApp(const BooApp());
 
@@ -14,6 +15,7 @@ class BooApp extends StatelessWidget {
   }
 }
 
+/* ------------- Page 1 ------------- */
 class PageEntrance extends StatefulWidget {
   const PageEntrance({super.key});
   @override
@@ -28,7 +30,6 @@ class _PageEntranceState extends State<PageEntrance> {
     WidgetsBinding.instance.addPostFrameCallback((_) => setState(() => _play = true));
   }
 
-/* ------------- Page 1 ------------- */
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,7 +89,7 @@ class _PageEntranceState extends State<PageEntrance> {
           padding: const EdgeInsets.all(16),
           child: FilledButton.icon(
             onPressed: () {
-              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PageThree()));
+              Navigator.of(context).push(MaterialPageRoute(builder: (_) => Scene2Page()));
             },
             icon: const Icon(Icons.navigate_next),
             label: const Text('Next'),
@@ -98,8 +99,128 @@ class _PageEntranceState extends State<PageEntrance> {
     );
   }
 }
-/* ------------- Page 2 ------------- */
-// waiting on code
+
+/* ------------- Page 2 (Scene 2) ------------- */
+class Scene2Page extends StatefulWidget {
+  @override
+  _Scene2PageState createState() => _Scene2PageState();
+}
+
+class _Scene2PageState extends State<Scene2Page>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _boobooController;
+  late Animation<double> _boobooAnimation;
+
+  double catTop = 500;
+  double catLeft = 80;
+  bool catRunning = false;
+
+  final AudioPlayer _player = AudioPlayer();
+
+  @override
+  void initState() {
+    super.initState();
+    _boobooController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    )..repeat(reverse: true);
+
+    _boobooAnimation = Tween<double>(begin: 0, end: 20).animate(
+      CurvedAnimation(parent: _boobooController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _boobooController.dispose();
+    _player.dispose();
+    super.dispose();
+  }
+
+  void _onCatTapped() async {
+    if (catRunning) return;
+    catRunning = true;
+
+    try {
+      await _player.play(AssetSource('assets/catmeow.mp3'));
+    } catch (e) {
+      print('Audio error: $e');
+    }
+
+    setState(() {
+      catLeft = MediaQuery.of(context).size.width;
+    });
+
+    await Future.delayed(Duration(seconds: 5));
+    setState(() {
+      catTop = 500;
+      catLeft = 80;
+    });
+
+    catRunning = false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/bgsc2.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+
+          AnimatedBuilder(
+            animation: _boobooAnimation,
+            builder: (context, child) {
+              return Positioned(
+                top: 100 + _boobooAnimation.value,
+                left: 50,
+                child: child!,
+              );
+            },
+            child: Image.asset('assets/ghost3.png', width: 100),
+          ),
+
+          AnimatedPositioned(
+            duration: Duration(milliseconds: 1000),
+            curve: Curves.easeInOut,
+            top: catTop,
+            left: catLeft,
+            child: GestureDetector(
+              onTap: _onCatTapped,
+              child: Image.asset('assets/cat.png', width: 150),
+            ),
+          ),
+
+          Positioned(
+            bottom: 50,
+            left: 20,
+            right: 20,
+            child: Text(
+              'Booboo tries to scare the cat… but the cat just runs away! **Hint: Tap the cat!**',
+              style: TextStyle(color: Colors.white, fontSize: 20),
+              textAlign: TextAlign.center,
+            ),
+          ),
+
+          Positioned(
+            bottom: 10,
+            right: 20,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PageThree()));
+              },
+              child: Text('Next'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 /* ------------- Page 3 ------------- */
 class PageThree extends StatefulWidget {
@@ -109,12 +230,11 @@ class PageThree extends StatefulWidget {
 }
 
 class _PageThreeState extends State<PageThree> with SingleTickerProviderStateMixin {
-  // Quick knobs to align/size without hunting through code:
   static const double mirrorW = 240;
   static const double mirrorH = 300;
-  static const EdgeInsets glassInset = EdgeInsets.fromLTRB(44, 60, 44, 72); // shrink reflection area
-  static const double booTargetX = -0.5;  // -1 = far left, +1 = far right
-  static const double booTargetY = 0.22;  // -1 = top, +1 = bottom
+  static const EdgeInsets glassInset = EdgeInsets.fromLTRB(44, 60, 44, 72);
+  static const double booTargetX = -0.5;
+  static const double booTargetY = 0.22;
 
   bool _booIn = false;
   bool _showReflection = false;
@@ -132,11 +252,11 @@ class _PageThreeState extends State<PageThree> with SingleTickerProviderStateMix
     ]).animate(CurvedAnimation(parent: _shakeC, curve: Curves.easeInOut));
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      setState(() => _booIn = true);                       // slide in
+      setState(() => _booIn = true);
       await Future.delayed(const Duration(milliseconds: 450));
-      setState(() => _showReflection = true);              // show reflection
+      setState(() => _showReflection = true);
       await Future.delayed(const Duration(milliseconds: 400));
-      _shakeC.forward();                                   // shake
+      _shakeC.forward();
     });
   }
 
@@ -172,7 +292,6 @@ class _PageThreeState extends State<PageThree> with SingleTickerProviderStateMix
                 ),
               ),
 
-              // Booboo slides in, then shakes
               AnimatedBuilder(
                 animation: _shake,
                 builder: (context, child) {
@@ -187,7 +306,6 @@ class _PageThreeState extends State<PageThree> with SingleTickerProviderStateMix
                 ),
               ),
 
-              // Mirror + reflection
               Align(
                 alignment: const Alignment(0.45, 0.12),
                 child: SizedBox(
@@ -196,7 +314,6 @@ class _PageThreeState extends State<PageThree> with SingleTickerProviderStateMix
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-
                       Positioned.fill(
                         child: Image.asset(
                           'assets/mirror.png',
@@ -204,7 +321,6 @@ class _PageThreeState extends State<PageThree> with SingleTickerProviderStateMix
                           filterQuality: FilterQuality.high,
                         ),
                       ),
-                     
                       Positioned(
                         left: glassInset.left,
                         right: glassInset.right,
@@ -258,9 +374,7 @@ class _PageThreeState extends State<PageThree> with SingleTickerProviderStateMix
               Expanded(
                 child: FilledButton.icon(
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Next page not implemented yet')),
-                    );
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => Scene4Page()));
                   },
                   icon: const Icon(Icons.navigate_next),
                   label: const Text('Next'),
@@ -274,7 +388,202 @@ class _PageThreeState extends State<PageThree> with SingleTickerProviderStateMix
   }
 }
 
-/* --------- Ghost image --------- */
+/* ------------- Page 4 (Scene 4) ------------- */
+class Scene4Page extends StatefulWidget {
+  @override
+  _Scene4PageState createState() => _Scene4PageState();
+}
+
+class _Scene4PageState extends State<Scene4Page>
+    with SingleTickerProviderStateMixin {
+  double boobooTop = 200;
+  double boobooLeft = 50;
+
+  double kidTop = 200;
+  double kidLeft = 300;
+
+  bool following = false;
+  final AudioPlayer _player = AudioPlayer();
+
+  void _onKidAppears() async {
+    if (following) return;
+    setState(() {
+      following = true;
+    });
+
+    try {
+      await _player.play(AssetSource('sounds/ghost_follow.wav'));
+    } catch (e) {
+      print("Audio error: $e");
+    }
+
+    setState(() {
+      boobooTop = kidTop;
+      boobooLeft = kidLeft - 80;
+    });
+  }
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          Container(color: Colors.indigo[900]),
+
+          Positioned(
+            top: kidTop,
+            left: kidLeft,
+            child: Image.asset('assets/kid.png', width: 100),
+          ),
+
+          AnimatedPositioned(
+            duration: Duration(seconds: 2),
+            curve: Curves.easeInOut,
+            top: boobooTop,
+            left: boobooLeft,
+            child: Image.asset('assets/ghost3.png', width: 100),
+          ),
+
+          Positioned(
+            bottom: 60,
+            left: 20,
+            right: 20,
+            child: Text(
+              'Booboo sees a kid… and starts to follow him quietly!',
+              style: TextStyle(color: Colors.white, fontSize: 20),
+              textAlign: TextAlign.center,
+            ),
+          ),
+
+          Positioned(
+            bottom: 10,
+            right: 20,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (_) => Scene5Page()));
+              },
+              child: Text('Next'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/* ------------- Page 5 (Scene 5) ------------- */
+class Scene5Page extends StatefulWidget {
+  @override
+  _Scene5PageState createState() => _Scene5PageState();
+}
+
+class _Scene5PageState extends State<Scene5Page> with SingleTickerProviderStateMixin {
+  double boobooTop = 200;
+  double boobooLeft = 50;
+
+  double kidTop = 200;
+  double kidLeft = 300;
+
+  bool scared = false;
+  final AudioPlayer _player = AudioPlayer();
+
+  void _onScare() async {
+    if (scared) return;
+    setState(() {
+      scared = true;
+      boobooTop = kidTop - 50; // Booboo moves closer to scare the kid
+      boobooLeft = kidLeft - 30;
+    });
+
+    // Play scary sound
+    try {
+      await _player.play(AssetSource('sounds/scary_scream.mp3'));
+    } catch (e) {
+      print("Audio error: $e");
+    }
+  }
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF0B0B12), Color(0xFF1A1425)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              // Kid
+              AnimatedPositioned(
+                duration: Duration(milliseconds: 800),
+                top: kidTop,
+                left: kidLeft,
+                child: Image.asset('assets/kid.png', width: 100),
+              ),
+
+              // Booboo
+              AnimatedPositioned(
+                duration: Duration(seconds: 2),
+                curve: Curves.easeInOut,
+                top: boobooTop,
+                left: boobooLeft,
+                child: Image.asset('assets/ghost3.png', width: 100),
+              ),
+
+              // Message
+              Center(
+                child: AnimatedOpacity(
+                  duration: Duration(milliseconds: 800),
+                  opacity: scared ? 1.0 : 0.0,
+                  child: Text(
+                    'BOO! You Win!',
+                    style: TextStyle(
+                      color: Colors.yellowAccent,
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                      shadows: [
+                        Shadow(blurRadius: 12, color: Colors.black, offset: Offset(3, 3)),
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+
+              // Button to trigger scare
+              Positioned(
+                bottom: 10,
+                right: 20,
+                child: ElevatedButton(
+                  onPressed: _onScare,
+                  child: Text('Scare the Kid'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/* --------- Ghost image widget --------- */
 class _GhostImage extends StatelessWidget {
   final double size;
   const _GhostImage({this.size = 120, super.key});
